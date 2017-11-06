@@ -1,0 +1,5 @@
+package: .
+import:
+- package: github.com/PuerkitoBio/goquery
+  version: v1.1.0
+- package: github.com/djimenez/iconv-go

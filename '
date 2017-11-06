@@ -1,0 +1,97 @@
+package main
+
+import (
+	"fmt"
+)
+
+// Day is just today's data structure exclude Hours and Minutes.
+type Day struct {
+	Day, Month, Year int
+	Weekday          string
+}
+
+// Time is structure of Hours "24" and Min "59".
+type Time struct {
+	Hour, Min int
+}
+
+type Delay struct {
+	Time
+	Delay_min int
+}
+
+// Ride is structure of bus ride time.
+type RideTime struct {
+	Time
+}
+
+type ArrivalTime struct {
+	Time
+	Delay
+}
+
+// Company is structure of strings. "KKK", "国際興業バス" and "http://www.kokusaibus.com/blsys/".
+type Company struct {
+	CompanyAbbr, CompanyName, Urls string
+	CssN
+}
+
+// Css is Css position of the data.
+type Css struct {
+	ExpTime, PlanedTime string
+}
+
+type CssN []Css
+
+type Station struct {
+	StationAbbr, StationName string
+}
+
+type ArrivalTimes []ArrivalTime
+
+type Bus struct {
+	Station
+	RideTime
+	Company
+	ArrivalTimes
+}
+
+func InitKKK() Company {
+	var kkk1 Css = Css{
+		ExpTime:    "test",
+		PlanedTime: "test",
+	}
+	var kkk2 Css = Css{
+		ExpTime:    "test2",
+		PlanedTime: "test2",
+	}
+	var kkk3 Css = Css{
+		ExpTime:    "test3",
+		PlanedTime: "test3",
+	}
+
+	var kkkCSS CssN
+	kkkCSS = append(kkkCSS, kkk1)
+	kkkCSS = append(kkkCSS, kkk2)
+	kkkCSS = append(kkkCSS, kkk3)
+
+	kkk := Company{
+		CompanyAbbr: "KKK",
+		CompanyName: "国際興業",
+		Urls:        "http://www.kokusaibus.com/blsys/",
+		CssN:        kkkCSS,
+	}
+
+	return kkk
+}
+
+func GetData() {
+	var kkk Company
+	kkk = InitKKK()
+	Scrape(kkk)
+	fmt.Println(kkk)
+}
+
+func main() {
+	GetData()
+}
