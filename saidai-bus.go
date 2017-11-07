@@ -15,150 +15,208 @@ type Time struct {
 type Day struct {
 	Time
 	Day, Month, Year     int
-	WeekdayJP, WeekdayEn string
+	WeekdayJp, WeekdayEn string
 }
 
 // var jpdays, endays = []string{0, 7}
 var jpdays = [...]string{"日", "月", "火", "水", "木", "金", "土"}
 var endays = [...]string{"Sun", "Mon", "Tue", "Wed", "Tho", "Fri", "Sat"}
 
+// Today is today's data structure of Day.
 var Today = Day{
-	WeekdayJP: jpdays[time.Now().Weekday()],
+	WeekdayJp: jpdays[time.Now().Weekday()],
 	WeekdayEn: endays[time.Now().Weekday()],
 	Day:       time.Now().Day(),
-	// Month:     time.Now().Month(),
-	Year: time.Now().Year(),
+	Month:     int(time.Now().Month()),
+	Year:      time.Now().Year(),
 }
 
-// Delay is Time plus DelayMin.
-type BusDelay struct {
+// Delay is bus delay time structure Used by Bus. Time and DelayMin.
+type Delay struct {
 	Time
 	DelayMin int
 }
 
-// Ride is structure of bus ride time.
-type BusLeft struct {
+// BusPlaned is structure of Time Used by Bus. Planed leave time.
+type BusPlaned struct {
 	Time
 }
 
+// BusArrival is structure of Time. Used by Bus. Time of arrive station.
 type BusArrival struct {
 	Time
 }
 
-// Company is structure of strings. "KKK", "国際興業バス" and "http://www.kokusaibus.com/blsys/".
+// Company is structure of strings "KKK", "国際興業バス" and CssN. Used by Scraping and Bus.
 type Company struct {
 	CompanyAbbr, CompanyName string
-	CssN
+	CSSN
 }
 
-type Urls []Url
-
-type Url struct {
-	Station
-	DistUrl string
-}
-
-// Css is Css position of the data.
-type Css struct {
+// CSS is CSS position's data structure. Used by CSSN and Company.
+type CSS struct {
 	PlanedLeft, RealLeft, NonStepBus, BusArrival string
 }
 
-type CssN []Css
+// CSSN is CSS lists. Used by Company.
+type CSSN []CSS
 
+// Station is data sets relete with each Station.
 type Station struct {
-	Abbr, NameJp, NameEn, UrlKKK, UrlSB string
+	Abbr, NameJp, NameEn, URLKkk, URLSb string
 }
 
+// Distination is structure of Bus distination and arrive time. Used by Bus.
 type Distination struct {
 	BusArrival
 	Station
 }
 
-//type Stations []Station
+// Stations is list of Station.
+type Stations []Station
 
-var MYKpenalty int = 5
+var stations Stations
 
-var MYN Station = Station{
+var kkk, sb Company
+
+// Init make stations.
+func Init() {
+	stations = append(stations, MYN)
+	stations = append(stations, MYK)
+	stations = append(stations, KU)
+	stations = append(stations, SHN)
+
+	kkk = InitKKK()
+	// sb = InitSB()
+}
+
+// MYKpenalty is 5 min additional time of MYK of arrival MinamiYono Station in comparison of MYN.
+var MYKpenalty = 5
+
+// MYN is Minami-Yono Nishi-gate bus station data structure.
+var MYN = Station{
 	Abbr:   "MYN",
 	NameJp: "南与野駅西口",
 	NameEn: "Minami-Yono station West gate",
-	UrlKKK: "",
-	UrlSB:  "",
+	URLKkk: "",
+	URLSb:  "http://transfer.navitime.biz/seibubus-dia/pc/location/BusLocationResult?startId=00111643&goalId=00111644",
 }
 
-var MYK Station = Station{
+// MYK is Minami-Yono Kita-gato bus station data structure.
+var MYK = Station{
 	Abbr:   "MYK",
 	NameJp: "南与野駅北入口",
 	NameEn: "Minami-Yono station North gate",
-	UrlKKK: "http://www.kokusaibus.com/blsys/loca?EID=nt&DSMK=0015&ASMK=2482&VID=lsc",
-	UrlSB:  "",
+	URLKkk: "http://www.kokusaibus.com/blsys/loca?EID=nt&DSMK=0015&ASMK=2482&VID=lsc",
+	URLSb:  "http://transfer.navitime.biz/seibubus-dia/pc/location/BusLocationResult?startId=00111643&goalId=00111639",
 }
 
-var KU Station = Station{
+// KU is Kita-Urawa bus station data structure.
+var KU = Station{
 	Abbr:   "KU",
 	NameJp: "北浦和駅",
 	NameEn: "Kita-Urawa station",
-	UrlKKK: "",
-	UrlSB:  "",
+	URLKkk: "",
+	URLSb:  "",
 }
 
-var SHN Station = Station{
+// SHN is Shinogi station data structure.
+var SHN = Station{
 	Abbr:   "SHN",
 	NameJp: "志木駅",
 	NameEn: "Shinogi station",
-	UrlKKK: "",
-	UrlSB:  "",
+	URLKkk: "",
+	URLSb:  "",
 }
 
+// BusList is list of Bus structure. It is the middle purpose.
 type BusList []Bus
 
+// Distinations is list of Distination.
 type Distinations []Distination
 
+// Bus is structure of bus related things data sets.
 type Bus struct {
 	Company
-	BusLeft
-	BusDelay
+	BusPlaned
+	Delay
 	Distinations
 }
 
-var kkk1 = Css{
+// sb1 is 1st left bus information CSS data sets of Seibu bus on each URL.
+var sb1 = CSS{
+	PlanedLeft: "li#plot0 div.orvPane > div:nth-child(2)",
+	RealLeft:   "li#plot0 div.orvPane > div:nth-child(3)",
+	NonStepBus: "",
+	BusArrival: "li#plot0 div.dnvPane > div:nth-child(2)",
+}
+
+// sb2 is 2nd left bus information CSS data sets of Seibu bus on each URL.
+var sb2 = CSS{
+	PlanedLeft: "li#plot1 div.orvPane > div:nth-child(2)",
+	RealLeft:   "li#plot1 div.orvPane > div:nth-child(3)",
+	NonStepBus: "",
+	BusArrival: "li#plot1 div.dnvPane > div:nth-child(2)",
+}
+
+// sb3 is 3rd left bus information CSS data sets of Seibu bus on each URL.
+var sb3 = CSS{
+	PlanedLeft: "li#plot2 div.orvPane > div:nth-child(2)",
+	RealLeft:   "li#plot2 div.orvPane > div:nth-child(3)",
+	NonStepBus: "",
+	BusArrival: "li#plot2 div.dnvPane > div:nth-child(2)",
+}
+
+// kkk1 is 1st left bus information CSS data sets of Kokusai bus on each URL.
+var kkk1 = CSS{
 	PlanedLeft: "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td:nth-child(1)",
 	RealLeft:   "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td:nth-child(2)",
 	NonStepBus: "div#mainContents tr:nth-child(2) > td:nth-child(5)",
 	BusArrival: "div#mainContents tr:nth-child(2) > td:nth-child(7)",
 }
 
-var kkk2 = Css{
+// kkk2 is 2nd left bus information CSS data sets of Kokusai bus on each URL.
+var kkk2 = CSS{
 	PlanedLeft: "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(4) > td:nth-child(1)",
 	RealLeft:   "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(4) > td:nth-child(2)",
 	NonStepBus: "div#mainContents tr:nth-child(4) > td:nth-child(5)",
 	BusArrival: "div#mainContents tr:nth-child(4) > td:nth-child(7)",
 }
-var kkk3 = Css{
+
+// kkk3 is 3rd left bus information CSS data sets of Kokusai bus on each URL.
+var kkk3 = CSS{
 	PlanedLeft: "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(6) > td:nth-child(1)",
 	RealLeft:   "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(6) > td:nth-child(2)",
 	NonStepBus: "div#mainContents tr:nth-child(6) > td:nth-child(5)",
 	BusArrival: "div#mainContents tr:nth-child(6) > td:nth-child(7)",
 }
 
-var TimeS string
-var Separator string = ":"
+// TimeStr must be string "12:30", distinguish form [12 30] and "Next 12:30".
+type TimeStr string
 
-func TimeSToI(time, separator string) {
-	if strings.Index(time, ":") != 2 {
-		fmt.Println("Scrape null")
-	}
-	else{
-	fmt.Println(strings.SplitN(time, separator, 2))
-	}
-	// var l [3]string
-	// l = strings.SplitN(time, separator, 2)
-	// if l[0]
-	// fmt.println(l)
+// Separator is ":". Both company are using "12:30" but [12 30] is better.
+var Separator = ":"
+
+// TimeSeparate is a method. TimeStr "12:30" make into "12", "30".
+func (stime TimeStr) TimeSeparate() (string, string) {
+	var h, m string
+	l := strings.SplitN(string(stime), Separator, 2)
+	h, m = l[0], l[1]
+	return h, m
 }
 
+// Timetoi is a method of TimeStr returning int hour and int minuts.
+func (stime TimeStr) Timetoi() (int, int) {
+	h, m := stime.TimeSeparate()
+	fmt.Println(h, m, "aaa")
+	var a = 1
+	var b = 1
+	return a, b
+}
+
+// InitKKK is Kokusai bus information initialize.
 func InitKKK() Company {
-	var kkkCSS CssN
+	var kkkCSS CSSN
 	kkkCSS = append(kkkCSS, kkk1)
 	kkkCSS = append(kkkCSS, kkk2)
 	kkkCSS = append(kkkCSS, kkk3)
@@ -166,27 +224,34 @@ func InitKKK() Company {
 	var kkk = Company{
 		CompanyAbbr: "KKK",
 		CompanyName: "国際興業",
-		CssN:        kkkCSS,
+		CSSN:        kkkCSS,
 	}
 	return kkk
 }
 
+// Scrape is Company method and return Bus Data.
 func (c *Company) Scrape(station *Station) {
 	fmt.Println(c)
 	fmt.Println(station)
+	var times TimeStr
+	times = "12:30"
+	times.Timetoi()
 }
 
+// GetData is Scrape and Format datas.
 func GetData() {
-	var kkk Company
-	kkk = InitKKK()
-	// sb = InitSB()
-	fmt.Println(kkk)
-	// fmt.Println(kkk.Urls[0].DistUrl)
-	TimeS = "12:30"
-	// kkk.Scrape(MYN)
-	TimeSToI(TimeS, Separator)
+	fmt.Println("Get Data Start")
+	// fmt.Println(kkk)
+	// fmt.Println(kkk.CSSN[0])
+	kkk.Scrape(&MYN)
+	fmt.Println("Get Data Finish")
 }
 
 func main() {
+	fmt.Println("Main Start")
+	Init()
 	GetData()
+	// OrdarBusList()
+	// ShowData()
+	fmt.Println("Main End")
 }
