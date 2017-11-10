@@ -231,8 +231,8 @@ func InitKKK() Company {
 
 // Scrape is Company method and return Bus Data.
 func (c *Company) Scrape(station *Station) {
-	fmt.Println(c)
-	fmt.Println(station)
+	// fmt.Println(c)
+	// fmt.Println(station)
 	var times TimeStr
 	times = "12:30"
 	times.Timetoi()
