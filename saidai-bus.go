@@ -78,24 +78,6 @@ type Distination struct {
 	Station
 }
 
-// Stations is list of Station.
-type Stations []Station
-
-var stations Stations
-
-var kkk, sb Company
-
-// Init make stations.
-func Init() {
-	stations = append(stations, MYN)
-	stations = append(stations, MYK)
-	stations = append(stations, KU)
-	stations = append(stations, SHN)
-
-	kkk = InitKKK()
-	// sb = InitSB()
-}
-
 // MYKpenalty is 5 min additional time of MYK of arrival MinamiYono Station in comparison of MYN.
 var MYKpenalty = 5
 
@@ -135,6 +117,24 @@ var SHN = Station{
 	URLSb:  "",
 }
 
+// Stations is list of Station.
+type Stations []Station
+
+var stations Stations
+
+var kkk, sb Company
+
+// Init make stations.
+func Init() {
+	stations = append(stations, MYN)
+	stations = append(stations, MYK)
+	stations = append(stations, KU)
+	stations = append(stations, SHN)
+
+	kkk = InitKKK()
+	sb = InitSB()
+}
+
 // BusList is list of Bus structure. It is the middle purpose.
 type BusList []Bus
 
@@ -150,8 +150,10 @@ type Bus struct {
 	Distinations
 }
 
+// ScrapeList is data structure of ScrapeStringi
 type ScrapeList []ScrapeString
 
+// ScrapeStringis data structure of scraping like "12:30", "12:35"...
 type ScrapeString struct {
 	Name       string
 	PlanedLeft TimeStr
@@ -160,31 +162,8 @@ type ScrapeString struct {
 	BusArrival TimeStr
 }
 
+// ScrapeDataNumber is the number how many data I scrape for same company same distination.
 var ScrapeDataNumber = 3
-
-// sb1 is 1st left bus information CSS data sets of Seibu bus on each URL.
-var sb1 = CSS{
-	PlanedLeft: "li#plot0 div.orvPane > div:nth-child(2)",
-	RealLeft:   "li#plot0 div.orvPane > div:nth-child(3)",
-	NonStepBus: "",
-	BusArrival: "li#plot0 div.dnvPane > div:nth-child(2)",
-}
-
-// sb2 is 2nd left bus information CSS data sets of Seibu bus on each URL.
-var sb2 = CSS{
-	PlanedLeft: "li#plot1 div.orvPane > div:nth-child(2)",
-	RealLeft:   "li#plot1 div.orvPane > div:nth-child(3)",
-	NonStepBus: "",
-	BusArrival: "li#plot1 div.dnvPane > div:nth-child(2)",
-}
-
-// sb3 is 3rd left bus information CSS data sets of Seibu bus on each URL.
-var sb3 = CSS{
-	PlanedLeft: "li#plot2 div.orvPane > div:nth-child(2)",
-	RealLeft:   "li#plot2 div.orvPane > div:nth-child(3)",
-	NonStepBus: "",
-	BusArrival: "li#plot2 div.dnvPane > div:nth-child(2)",
-}
 
 // TimeStr must be string "12:30", distinguish form [12 30] and "Next 12:30".
 type TimeStr string
@@ -209,9 +188,31 @@ func (stime TimeStr) Timetoi() (int, int) {
 	return a, b
 }
 
+// InitSB is CSS data and Company data making.
+func InitSB() Company {
+	var cssn CSSN
+	for i := 0; i < ScrapeDataNumber; i++ {
+		Num := i - 1
+		NumS := strconv.Itoa(Num)
+		var sbcss = CSS{
+			PlanedLeft: "li#plot" + NumS + " div.orvPane > div:nth-child(2)",
+			RealLeft:   "li#plot" + NumS + " div.orvPane > div:nth-child(3)",
+			NonStepBus: "",
+			BusArrival: "li#plot" + NumS + " div.dnvPane > div:nth-child(2)",
+		}
+		cssn = append(cssn, sbcss)
+	}
+	var sb = Company{
+		CompanyAbbr: "SB",
+		CompanyName: "西武バス",
+		CSSN:        cssn,
+	}
+	return sb
+}
+
 // InitKKK is Kokusai bus information initialize.
 func InitKKK() Company {
-	var kkkCSS CSSN
+	var cssn CSSN
 	for i := 0; i < ScrapeDataNumber; i++ {
 		Num := i * 2
 		NumS := strconv.Itoa(Num)
@@ -221,12 +222,12 @@ func InitKKK() Company {
 			NonStepBus: "div#mainContents tr:nth-child(" + NumS + ") > td:nth-child(5)",
 			BusArrival: "div#mainContents tr:nth-child(" + NumS + ") > td:nth-child(7)",
 		}
-		kkkCSS = append(kkkCSS, kkkcss)
+		cssn = append(cssn, kkkcss)
 	}
 	var kkk = Company{
 		CompanyAbbr: "KKK",
 		CompanyName: "国際興業",
-		CSSN:        kkkCSS,
+		CSSN:        cssn,
 	}
 	return kkk
 }
@@ -265,8 +266,8 @@ func InitKKK() Company {
 
 // (TimeStr, Bus)
 
-func (c *Company) Access(url string) ScrapeList {
-	res, err := http.Get(url)
+func (c *Company) Access(url *string) ScrapeList {
+	res, err := http.Get(*url)
 	fmt.Println(res)
 	if err != nil {
 		fmt.Println("No NetConnection")
