@@ -266,6 +266,7 @@ func InitKKK() Company {
 
 // (TimeStr, Bus)
 
+// Access is a method which fetch web site and return not formatted time data.
 func (c *Company) Access(url *string) ScrapeList {
 	res, err := http.Get(*url)
 	fmt.Println(res)
