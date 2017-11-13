@@ -156,12 +156,12 @@ type Bus struct {
 // ScrapeList is data structure of ScrapeStringi
 type ScrapeList []ScrapeString
 
-// ScrapeStringis data structure of scraping like "12:30", "12:35"...
+// ScrapeStringis data structure of scraping like "12:30", "12:35", "No" , "12:50".
 type ScrapeString struct {
 	Name       string
 	PlanedLeft TimeStr
 	RealLeft   TimeStr
-	NonStepBus TimeStr
+	NonStepBus string
 	BusArrival TimeStr
 }
 
@@ -290,7 +290,7 @@ func (c *Company) Access(url *string) ScrapeList {
 		var scrapestr = ScrapeString{
 			PlanedLeft: TimeStr(doc.Find("c.CSSN[i].PlanedLeft").Text()),
 			RealLeft:   TimeStr(doc.Find("c.CSSN[i].RealLeft").Text()),
-			NonStepBus: TimeStr(doc.Find("c.CSNN[i].NonStepBus").Text()),
+			NonStepBus: doc.Find("c.CSNN[i].NonStepBus").Text(),
 			BusArrival: TimeStr(doc.Find("c.CSNN[i].BusArrival").Text()),
 		}
 		scrapelist = append(scrapelist, scrapestr)
