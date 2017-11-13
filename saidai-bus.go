@@ -267,6 +267,12 @@ func (c *Company) Access(url string) ScrapeList {
 
 // Scrape is Company method and return Bus Data.
 func (c *Company) Scrape(station *Station) {
+	// fmt.Println(reflect.TypeOf(station))
+	// fmt.Println(station)
+
+	// fmt.Println(reflect.TypeOf(c))
+	// fmt.Println(c)
+
 	switch c.CompanyAbbr {
 	case "KKK":
 		fmt.Println("kkk start")
