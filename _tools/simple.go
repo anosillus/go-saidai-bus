@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/djimenez/iconv-go"
@@ -29,6 +30,11 @@ func main() {
 		log.Fatal(err)
 	}
 	// fmt.Println(doc.Text())
-	fmt.Print(doc.Find("div#mainContents tr:nth-child(3) > td:nth-child(2)").Text())
+	aaa := doc.Find("div#mainContents tr:nth-child(10) > td:nth-child(2)").Text()
+	fmt.Println(aaa)
+	// fmt.Println(type(aaa))
+	fmt.Println(reflect.TypeOf(aaa))
+	fmt.Println("")
+	fmt.Println(reflect.TypeOf(""))
 	//人類に感謝
 }

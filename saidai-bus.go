@@ -171,7 +171,7 @@ type TimeStr string
 // Separator is ":". Both company are using "12:30" but [12 30] is better.
 var Separator = ":"
 
-// TimeSeparate is a method. TimeStr "12:30" make into "12", "30".
+// TimeSeparate is a method used by Timetoi. TimeStr "12:30" make into "12", "30".
 func (stime TimeStr) TimeSeparate() (string, string) {
 	var h, m string
 	l := strings.SplitN(string(stime), Separator, 2)
@@ -232,43 +232,9 @@ func InitKKK() Company {
 	return kkk
 }
 
-// func (css *CSS) Scrape(station *Station) BusList {
-// 	for i := 0; i < 3; i++
-// 	switch c.CompanyAbbr{
-// 	// case "KKK": url :=
-// 	}
-// 	url
-// 	url = "http://www.kokusaibus.com/blsys/loca?EID=nt&DSMK=0015&ASMK=2482&VID=lsc"
-// 	res, err := http.Get(url)
-// 	if err != nil {
-// 		// handle error
-// 	}
-// 	defer res.Body.Close()
-// 	var charset string
-// 	charset = "shift_jis"
-// 	// fmt.Println(charset)
-// 	utfBody, err := iconv.NewReader(res.Body, charset, "utf-8")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	doc, err := goquery.NewDocumentFromReader(utfBody)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	// fmt.Println(doc.Text())
-// 	fmt.Print(doc.Find("div#mainContents tr:nth-child(3) > td:nth-child(2)").Text())
-//
-// 	sh
-//
-// fmt.Println(c.CSSN[2].PlanedLeft, station.URLKkk)
-// return kkkBus
-// }
-
-// (TimeStr, Bus)
-
 // Access is a method which fetch web site and return not formatted time data.
-func (c *Company) Access(url *string) ScrapeList {
-	res, err := http.Get(*url)
+func (c *Company) Access(url string) ScrapeList {
+	res, err := http.Get(url)
 	fmt.Println(res)
 	if err != nil {
 		fmt.Println("No NetConnection")
@@ -304,11 +270,19 @@ func (c *Company) Scrape(station *Station) {
 	switch c.CompanyAbbr {
 	case "KKK":
 		fmt.Println("kkk start")
-		scrapelist := c.Access(&station.URLKkk)
+		url := station.URLKkk
+		scrapelist := c.Access(url)
 		fmt.Println(&scrapelist)
+
+		// scrapelist into Bus data
+		// BusStructMake()
 	case "SB":
-		scrapelist := c.Access(&station.URLSb)
+		fmt.Println("sb start")
+		url := station.URLSb
+		scrapelist := c.Access(url)
 		fmt.Println(scrapelist)
+		// scrapelist into Bus data
+		// BusStructMake()
 	default:
 		fmt.Printf("Company Name Error")
 	}
