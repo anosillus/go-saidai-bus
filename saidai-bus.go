@@ -2,8 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	iconv "github.com/djimenez/iconv-go"
 )
 
 // Time is structure of Hours "24" and Min "59".
@@ -137,11 +143,24 @@ type Distinations []Distination
 
 // Bus is structure of bus related things data sets.
 type Bus struct {
+	Name string
 	Company
 	BusPlaned
 	Delay
 	Distinations
 }
+
+type ScrapeList []ScrapeString
+
+type ScrapeString struct {
+	Name       string
+	PlanedLeft TimeStr
+	RealLeft   TimeStr
+	NonStepBus TimeStr
+	BusArrival TimeStr
+}
+
+var ScrapeDataNumber = 3
 
 // sb1 is 1st left bus information CSS data sets of Seibu bus on each URL.
 var sb1 = CSS{
@@ -165,30 +184,6 @@ var sb3 = CSS{
 	RealLeft:   "li#plot2 div.orvPane > div:nth-child(3)",
 	NonStepBus: "",
 	BusArrival: "li#plot2 div.dnvPane > div:nth-child(2)",
-}
-
-// kkk1 is 1st left bus information CSS data sets of Kokusai bus on each URL.
-var kkk1 = CSS{
-	PlanedLeft: "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td:nth-child(1)",
-	RealLeft:   "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td:nth-child(2)",
-	NonStepBus: "div#mainContents tr:nth-child(2) > td:nth-child(5)",
-	BusArrival: "div#mainContents tr:nth-child(2) > td:nth-child(7)",
-}
-
-// kkk2 is 2nd left bus information CSS data sets of Kokusai bus on each URL.
-var kkk2 = CSS{
-	PlanedLeft: "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(4) > td:nth-child(1)",
-	RealLeft:   "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(4) > td:nth-child(2)",
-	NonStepBus: "div#mainContents tr:nth-child(4) > td:nth-child(5)",
-	BusArrival: "div#mainContents tr:nth-child(4) > td:nth-child(7)",
-}
-
-// kkk3 is 3rd left bus information CSS data sets of Kokusai bus on each URL.
-var kkk3 = CSS{
-	PlanedLeft: "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(6) > td:nth-child(1)",
-	RealLeft:   "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(6) > td:nth-child(2)",
-	NonStepBus: "div#mainContents tr:nth-child(6) > td:nth-child(5)",
-	BusArrival: "div#mainContents tr:nth-child(6) > td:nth-child(7)",
 }
 
 // TimeStr must be string "12:30", distinguish form [12 30] and "Next 12:30".
@@ -217,10 +212,17 @@ func (stime TimeStr) Timetoi() (int, int) {
 // InitKKK is Kokusai bus information initialize.
 func InitKKK() Company {
 	var kkkCSS CSSN
-	kkkCSS = append(kkkCSS, kkk1)
-	kkkCSS = append(kkkCSS, kkk2)
-	kkkCSS = append(kkkCSS, kkk3)
-
+	for i := 0; i < ScrapeDataNumber; i++ {
+		Num := i * 2
+		NumS := strconv.Itoa(Num)
+		var kkkcss = CSS{
+			PlanedLeft: "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(" + NumS + ")> td:nth-child(1)",
+			RealLeft:   "div#mainContents tr:nth-child(2) > td > table > tbody > tr:nth-child(" + NumS + ") > td:nth-child(2)",
+			NonStepBus: "div#mainContents tr:nth-child(" + NumS + ") > td:nth-child(5)",
+			BusArrival: "div#mainContents tr:nth-child(" + NumS + ") > td:nth-child(7)",
+		}
+		kkkCSS = append(kkkCSS, kkkcss)
+	}
 	var kkk = Company{
 		CompanyAbbr: "KKK",
 		CompanyName: "国際興業",
@@ -229,13 +231,90 @@ func InitKKK() Company {
 	return kkk
 }
 
+// func (css *CSS) Scrape(station *Station) BusList {
+// 	for i := 0; i < 3; i++
+// 	switch c.CompanyAbbr{
+// 	// case "KKK": url :=
+// 	}
+// 	url
+// 	url = "http://www.kokusaibus.com/blsys/loca?EID=nt&DSMK=0015&ASMK=2482&VID=lsc"
+// 	res, err := http.Get(url)
+// 	if err != nil {
+// 		// handle error
+// 	}
+// 	defer res.Body.Close()
+// 	var charset string
+// 	charset = "shift_jis"
+// 	// fmt.Println(charset)
+// 	utfBody, err := iconv.NewReader(res.Body, charset, "utf-8")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	doc, err := goquery.NewDocumentFromReader(utfBody)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	// fmt.Println(doc.Text())
+// 	fmt.Print(doc.Find("div#mainContents tr:nth-child(3) > td:nth-child(2)").Text())
+//
+// 	sh
+//
+// fmt.Println(c.CSSN[2].PlanedLeft, station.URLKkk)
+// return kkkBus
+// }
+
+// (TimeStr, Bus)
+
+func (c *Company) Access(url string) ScrapeList {
+	res, err := http.Get(url)
+	fmt.Println(res)
+	if err != nil {
+		fmt.Println("No NetConnection")
+	}
+	defer res.Body.Close()
+	var charset string
+	charset = "shift_jis"
+	utfBody, err := iconv.NewReader(res.Body, charset, "utf-8")
+	if err != nil {
+		log.Fatal(err)
+	}
+	doc, err := goquery.NewDocumentFromReader(utfBody)
+	if err != nil {
+		log.Fatal(err)
+		fmt.Println("Query Erro")
+	}
+	var scrapelist ScrapeList
+
+	for i := 0; i < ScrapeDataNumber; i++ {
+		var scrapestr = ScrapeString{
+			PlanedLeft: TimeStr(doc.Find("c.CSSN[i].PlanedLeft").Text()),
+			RealLeft:   TimeStr(doc.Find("c.CSSN[i].RealLeft").Text()),
+			NonStepBus: TimeStr(doc.Find("c.CSNN[i].NonStepBus").Text()),
+			BusArrival: TimeStr(doc.Find("c.CSNN[i].BusArrival").Text()),
+		}
+		scrapelist = append(scrapelist, scrapestr)
+	}
+	return scrapelist
+}
+
 // Scrape is Company method and return Bus Data.
 func (c *Company) Scrape(station *Station) {
+	switch c.CompanyAbbr {
+	case "KKK":
+		fmt.Println("kkk start")
+		scrapelist := c.Access(station.URLKkk)
+		fmt.Println(&scrapelist)
+	case "SB":
+		scrapelist := c.Access(station.URLSb)
+		fmt.Println(scrapelist)
+	default:
+		fmt.Printf("Company Name Error")
+	}
 	// fmt.Println(c)
 	// fmt.Println(station)
-	var times TimeStr
-	times = "12:30"
-	times.Timetoi()
+	// var times TimeStr
+	// times = "12:30"
+	// fmt.Println(scrapelist)
 }
 
 // GetData is Scrape and Format datas.
@@ -243,6 +322,7 @@ func GetData() {
 	fmt.Println("Get Data Start")
 	// fmt.Println(kkk)
 	// fmt.Println(kkk.CSSN[0])
+	// for
 	kkk.Scrape(&MYN)
 	fmt.Println("Get Data Finish")
 }
