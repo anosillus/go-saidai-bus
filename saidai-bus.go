@@ -53,19 +53,19 @@ type BusArrival struct {
 	Time
 }
 
+// CSS is CSS position's data structure. Used by Init(), CSSN and Company.
+type CSS struct {
+	PlanedLeft, RealLeft, NonStepBus, BusArrival string
+}
+
+// CSSN is CSS lists. Used by Company and Init().
+type CSSN []CSS
+
 // Company is structure of strings "KKK", "国際興業バス" and CssN. Used by Scraping and Bus.
 type Company struct {
 	CompanyAbbr, CompanyName string
 	CSSN
 }
-
-// CSS is CSS position's data structure. Used by CSSN and Company.
-type CSS struct {
-	PlanedLeft, RealLeft, NonStepBus, BusArrival string
-}
-
-// CSSN is CSS lists. Used by Company.
-type CSSN []CSS
 
 // Station is data sets relete with each Station.
 type Station struct {
@@ -77,9 +77,6 @@ type Distination struct {
 	BusArrival
 	Station
 }
-
-// MYKpenalty is 5 min additional time of MYK of arrival MinamiYono Station in comparison of MYN.
-var MYKpenalty = 5
 
 // MYN is Minami-Yono Nishi-gate bus station data structure.
 var MYN = Station{
@@ -117,12 +114,18 @@ var SHN = Station{
 	URLSb:  "",
 }
 
+// MYKpenalty is 5 min additional time of MYK of arrival MinamiYono Station in comparison of MYN.
+var MYKpenalty = 5
+
+// ScrapeDataNumber is the number how many data I scrape for same company same distination.
+var ScrapeDataNumber = 3
+
+var kkk, sb Company
+
 // Stations is list of Station.
 type Stations []Station
 
 var stations Stations
-
-var kkk, sb Company
 
 // Init make stations.
 func Init() {
@@ -161,9 +164,6 @@ type ScrapeString struct {
 	NonStepBus TimeStr
 	BusArrival TimeStr
 }
-
-// ScrapeDataNumber is the number how many data I scrape for same company same distination.
-var ScrapeDataNumber = 3
 
 // TimeStr must be string "12:30", distinguish form [12 30] and "Next 12:30".
 type TimeStr string
@@ -303,10 +303,10 @@ func (c *Company) Scrape(station *Station) {
 	switch c.CompanyAbbr {
 	case "KKK":
 		fmt.Println("kkk start")
-		scrapelist := c.Access(station.URLKkk)
+		scrapelist := c.Access(&station.URLKkk)
 		fmt.Println(&scrapelist)
 	case "SB":
-		scrapelist := c.Access(station.URLSb)
+		scrapelist := c.Access(&station.URLSb)
 		fmt.Println(scrapelist)
 	default:
 		fmt.Printf("Company Name Error")
