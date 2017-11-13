@@ -156,7 +156,7 @@ type Bus struct {
 // ScrapeList is data structure of ScrapeStringi
 type ScrapeList []ScrapeString
 
-// ScrapeStringis data structure of scraping like "12:30", "12:35", "No" , "12:50".
+// ScrapeString data structure of scraping like "12:30", "12:35", "No" , "12:50".
 type ScrapeString struct {
 	Name       string
 	PlanedLeft TimeStr
