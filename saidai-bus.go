@@ -83,7 +83,7 @@ var MYN = Station{
 	Abbr:   "MYN",
 	NameJp: "南与野駅西口",
 	NameEn: "Minami-Yono station West gate",
-	URLKkk: "",
+	URLKkk: "http://www.kokusaibus.com/blsys/loca?EID=nt&DSMK=0015&ASMK=3333&VID=lsc",
 	URLSb:  "http://transfer.navitime.biz/seibubus-dia/pc/location/BusLocationResult?startId=00111643&goalId=00111644",
 }
 
@@ -158,7 +158,6 @@ type ScrapeList []ScrapeString
 
 // ScrapeString data structure of scraping like "12:30", "12:35", "No" , "12:50".
 type ScrapeString struct {
-	Name       string
 	PlanedLeft TimeStr
 	RealLeft   TimeStr
 	NonStepBus string
@@ -233,13 +232,17 @@ func InitKKK() Company {
 }
 
 // Access is a method which fetch web site and return not formatted time data.
-func (c *Company) Access(url string) ScrapeList {
+func Access(url string, css CSSN) ScrapeList {
+	fmt.Println("this is css")
+	fmt.Println(css)
+	fmt.Println("css end ")
+	fmt.Println("Url is ", url)
 	res, err := http.Get(url)
 	fmt.Println(res)
 	if err != nil {
 		fmt.Println("No NetConnection")
 	}
-	defer res.Body.Close()
+	// defer res.Body.Close()
 	var charset string
 	charset = "shift_jis"
 	utfBody, err := iconv.NewReader(res.Body, charset, "utf-8")
@@ -255,13 +258,15 @@ func (c *Company) Access(url string) ScrapeList {
 
 	for i := 0; i < ScrapeDataNumber; i++ {
 		var scrapestr = ScrapeString{
-			PlanedLeft: TimeStr(doc.Find("c.CSSN[i].PlanedLeft").Text()),
-			RealLeft:   TimeStr(doc.Find("c.CSSN[i].RealLeft").Text()),
-			NonStepBus: doc.Find("c.CSNN[i].NonStepBus").Text(),
-			BusArrival: TimeStr(doc.Find("c.CSNN[i].BusArrival").Text()),
+			PlanedLeft: TimeStr(doc.Find("css[i].PlanedLeft").Text()),
+			RealLeft:   TimeStr(doc.Find("css[i].RealLeft").Text()),
+			NonStepBus: doc.Find("css[i].NonStepBus").Text(),
+			BusArrival: TimeStr(doc.Find("css[i].BusArrival").Text()),
 		}
 		scrapelist = append(scrapelist, scrapestr)
 	}
+	fmt.Println(scrapelist)
+	fmt.Println("scrapelist test")
 	return scrapelist
 }
 
@@ -277,16 +282,17 @@ func (c *Company) Scrape(station *Station) {
 	case "KKK":
 		fmt.Println("kkk start")
 		url := station.URLKkk
-		scrapelist := c.Access(url)
+		fmt.Println(station)
+		scrapelist := Access(url, c.CSSN)
 		fmt.Println(&scrapelist)
 
 		// scrapelist into Bus data
 		// BusStructMake()
 	case "SB":
 		fmt.Println("sb start")
-		url := station.URLSb
-		scrapelist := c.Access(url)
-		fmt.Println(scrapelist)
+		// url := station.URLSb
+		// scrapelist := c.Access(url)
+		// fmt.Println(scrapelist)
 		// scrapelist into Bus data
 		// BusStructMake()
 	default:
