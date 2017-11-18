@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	goquery "github.com/PuerkitoBio/goquery"
 	iconv "github.com/djimenez/iconv-go"
 )
 
@@ -238,7 +238,7 @@ func Access(url string, css CSSN) ScrapeList {
 	fmt.Println("css end ")
 	fmt.Println("Url is ", url)
 	res, err := http.Get(url)
-	fmt.Println(res)
+	// fmt.Println(res)
 	if err != nil {
 		fmt.Println("No NetConnection")
 	}
@@ -249,6 +249,7 @@ func Access(url string, css CSSN) ScrapeList {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(utfBody)
 	doc, err := goquery.NewDocumentFromReader(utfBody)
 	if err != nil {
 		log.Fatal(err)
@@ -284,7 +285,8 @@ func (c *Company) Scrape(station *Station) {
 		url := station.URLKkk
 		fmt.Println(station)
 		scrapelist := Access(url, c.CSSN)
-		fmt.Println(&scrapelist)
+		fmt.Println("scrape method")
+		fmt.Println(scrapelist)
 
 		// scrapelist into Bus data
 		// BusStructMake()
