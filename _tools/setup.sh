@@ -17,3 +17,10 @@ mkdir $HOME/go
 
 mkdir -p ~/dev/src/github.com/pydaa
 git clone https://github.com/pydaa/go-saidai-bus.git ~/dev/src/github.com/pydaa
+
+go get github.com/Masterminds/glide
+go install github.com/Masterminds/glide
+
+cd ~/dev/src/github.com/pydaa
+glide install -v
+
