@@ -1,5 +1,5 @@
-package: .
+package: github.com/pydaa/go-saidai-bus
 import:
 - package: github.com/PuerkitoBio/goquery
-  version: v1.1.0
+  version: ~1.1.0
 - package: github.com/djimenez/iconv-go

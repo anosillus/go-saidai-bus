@@ -67,7 +67,7 @@ type Company struct {
 	CSSN
 }
 
-// Station is data sets relete with each Station.
+// Station is data sets relate with each Station.
 type Station struct {
 	Abbr, NameJp, NameEn, URLKkk, URLSb string
 }
@@ -164,7 +164,7 @@ type ScrapeString struct {
 	BusArrival TimeStr
 }
 
-// TimeStr must be string "12:30", distinguish form [12 30] and "Next 12:30".
+// TimeStr must be string "12:30", distinguish form [12 30] and "twelve thirty".
 type TimeStr string
 
 // Separator is ":". Both company are using "12:30" but [12 30] is better.
@@ -249,7 +249,7 @@ func Access(url string, css CSSN) ScrapeList {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(utfBody)
+	// fmt.Println(utfBody)
 	doc, err := goquery.NewDocumentFromReader(utfBody)
 	if err != nil {
 		log.Fatal(err)
